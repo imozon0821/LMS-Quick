@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "LMS Quick",
+  "version": "2.2",
+  "description": "金沢大学生のためのLMS用拡張機能",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "https://eduweb.sta.kanazawa-u.ac.jp/*",
+    "https://acanthus.cis.kanazawa-u.ac.jp/*",
+    "https://lms-wc.el.kanazawa-u.ac.jp/*"
+  ],
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://acanthus.cis.kanazawa-u.ac.jp/*",
+        "https://eduweb.sta.kanazawa-u.ac.jp/*",
+        "https://lms-wc.el.kanazawa-u.ac.jp/*"
+      ],
+      "css": ["style.css"],
+      "js": ["content.js"]
+    }
+  ]
+}

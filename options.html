@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>時間割設定 - LMS Quick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── ダークテーマ（デフォルト） ── */
+:root {
+  --bg-root:       #0f1117;
+  --bg-panel:      #161b27;
+  --bg-surface:    #1c2235;
+  --bg-hover:      #212840;
+  --border-subtle: rgba(255,255,255,0.05);
+  --border-mid:    rgba(255,255,255,0.09);
+  --border-strong: rgba(255,255,255,0.15);
+  --text-primary:  rgba(255,255,255,0.92);
+  --text-secondary:rgba(255,255,255,0.55);
+  --text-muted:    rgba(255,255,255,0.30);
+
+  --accent-blue:       #003e5f;
+  --accent-blue-hover: #00283e;
+  --accent-blue-glow:  rgba(0,62,95,0.15);
+
+  --input-bg:      #1c2235;
+  --input-border:  rgba(255,255,255,0.09);
+  --input-focus-bg: #212840;
+  --input-focus-border: rgba(0,62,95,0.8);
+
+  /* 曜日カラー */
+  --mon: #ff4655;  --mon-bg: rgba(255,70,85,0.06);
+  --tue: #ffbe32;  --tue-bg: rgba(255,190,50,0.06);
+  --wed: #4ade80;  --wed-bg: rgba(74,222,128,0.06);
+  --thu: #60a5fa;  --thu-bg: rgba(96,165,250,0.06);
+  --fri: #c084fc;  --fri-bg: rgba(192,132,252,0.06);
+}
+
+/* ── ライトテーマ ── */
+body.light-theme {
+  --bg-root:       #f1f3f5;
+  --bg-panel:      #ffffff;
+  --bg-surface:    #f8f9fa;
+  --bg-hover:      #edf0f3;
+  --border-subtle: rgba(0,0,0,0.06);
+  --border-mid:    rgba(0,0,0,0.11);
+  --border-strong: rgba(0,0,0,0.18);
+  --text-primary:  #1a1d23;
+  --text-secondary:#4a5568;
+  --text-muted:    #8a95a3;
+
+  --input-bg:           #ffffff;
+  --input-border:       rgba(0,0,0,0.12);
+  --input-focus-bg:     #f0f4ff;
+  --input-focus-border: rgba(0,62,95,0.40);
+
+  --mon-bg: rgba(255,70,85,0.05);
+  --tue-bg: rgba(255,190,50,0.05);
+  --wed-bg: rgba(74,222,128,0.05);
+  --thu-bg: rgba(96,165,250,0.05);
+  --fri-bg: rgba(192,132,252,0.05);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg-root);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding-bottom: 96px;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── ヘッダー ── */
+header {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-mid);
+  padding: 0 28px;
+  position: sticky; top: 0; z-index: 200;
+  display: flex; align-items: center; gap: 12px; height: 54px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.header-icon {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  background: var(--accent-blue); color: #fff;
+  padding: 3px 8px; border-radius: 4px; font-size: 14px;
+}
+header h1 { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.sub { font-size: 12px; color: var(--text-muted); margin-left: 6px; }
+
+/* ── テーマセレクト ── */
+#theme-select {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-mid);
+  border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── 時間割グリッド ── */
+.timetable-scroll { overflow-x: auto; padding: 28px 20px 4px; max-width: 1020px; margin: 0 auto; }
+.timetable {
+  display: grid;
+  grid-template-columns: 52px repeat(5, minmax(130px, 1fr));
+  gap: 8px; min-width: 500px;
+}
+.day-header {
+  border-radius: 9px 9px 0 0; padding: 10px 6px 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border-bottom: 3px solid transparent;
+}
+.day-header.mon { background: var(--mon-bg); border-bottom-color: var(--mon); }
+.day-header.tue { background: var(--tue-bg); border-bottom-color: var(--tue); }
+.day-header.wed { background: var(--wed-bg); border-bottom-color: var(--wed); }
+.day-header.thu { background: var(--thu-bg); border-bottom-color: var(--thu); }
+.day-header.fri { background: var(--fri-bg); border-bottom-color: var(--fri); }
+.day-ja { font-size: 17px; font-weight: 600; color: var(--text-primary); }
+
+.period-label {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 0;
+}
+.period-num { font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; color: var(--text-secondary); line-height: 1; }
+.period-ji  { font-size: 9px; color: var(--text-muted); }
+
+/* ── セル ── */
+.cell {
+  background: var(--bg-panel); border: 1px solid var(--border-subtle);
+  border-radius: 8px; padding: 9px 10px 11px;
+  display: flex; flex-direction: column; gap: 6px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.cell:focus-within {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 2px var(--accent-blue-glow);
+}
+
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase; padding-left: 1px;
+}
+.field input {
+  width: 100%; height: 28px;
+  border: 1px solid var(--input-border); border-radius: 5px;
+  background: var(--input-bg); color: var(--text-primary);
+  padding: 0 7px; outline: none; font-size: 11.5px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.field input:focus {
+  background: var(--input-focus-bg);
+  border-color: var(--input-focus-border);
+}
+.field input::placeholder { color: var(--text-muted); }
+
+/* ── 保存バー ── */
+.save-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg-panel); border-top: 1px solid var(--border-mid);
+  padding: 14px 28px;
+  display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+  z-index: 300; transition: background 0.2s;
+}
+.save-hint { font-size: 12px; color: var(--text-muted); }
+
+#save-btn {
+  background: var(--accent-blue); color: #fff; border: none;
+  border-radius: 8px; padding: 0 22px; height: 38px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+#save-btn:hover:not(:disabled) { background: var(--accent-blue-hover); transform: translateY(-1px); }
+#save-btn:disabled { opacity: 0.7; cursor: default; }
+
+#reset-btn {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  padding: 0 15px; height: 38px; border-radius: 8px;
+  cursor: pointer; font-size: 12px;
+  transition: background 0.2s, color 0.2s;
+  margin-right: auto;
+}
+#reset-btn:hover { background: rgba(128,128,128,0.1); color: var(--text-primary); }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-icon">LMS Quick</div>
+  <h1>時間割設定<span class="sub">— 授業名とURLを登録してください</span></h1>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+    <span style="font-size: 12px; color: var(--text-muted);">テーマ:</span>
+    <select id="theme-select">
+      <option value="dark">🌙 ダーク</option>
+      <option value="light">☀️ ライト</option>
+    </select>
+  </div>
+</header>
+
+<div class="timetable-scroll">
+  <div class="timetable" id="timetable-grid">
+    <div style="grid-column:1; grid-row:1;"></div>
+    <div class="day-header mon" style="grid-column:2; grid-row:1;"><span class="day-ja">月</span></div>
+    <div class="day-header tue" style="grid-column:3; grid-row:1;"><span class="day-ja">火</span></div>
+    <div class="day-header wed" style="grid-column:4; grid-row:1;"><span class="day-ja">水</span></div>
+    <div class="day-header thu" style="grid-column:5; grid-row:1;"><span class="day-ja">木</span></div>
+    <div class="day-header fri" style="grid-column:6; grid-row:1;"><span class="day-ja">金</span></div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <span class="save-hint">入力内容は拡張機能に保存されます</span>
+  <button id="reset-btn" type="button">全データをリセット</button>
+  <button id="save-btn" type="button">保存する</button>
+</div>
+
+<script src="options.js"></script>
+</body>
+</html>

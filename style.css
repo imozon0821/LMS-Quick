@@ -1,0 +1,441 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* =====================================================================
+   LMS Quick - style.css  v1.1
+   設計方針:
+   - 全ての色をCSS変数で管理し、ライト/ダーク両対応を保証
+   - 固定色（#fff など）はブランド色のみに限定
+   - alert-card内のテキストも変数経由で両テーマで視認可能にする
+   ===================================================================== */
+
+/* ── ダークテーマ（デフォルト） ── */
+:root {
+  --bg-panel:        #161b27;
+  --bg-surface:      #1c2235;
+  --bg-hover:        #212840;
+  --bg-deep:         #111520;
+  --border-subtle:   rgba(255,255,255,0.05);
+  --border-mid:      rgba(255,255,255,0.09);
+  --border-strong:   rgba(255,255,255,0.15);
+
+  --accent-blue:       #003e5f;
+  --accent-blue-hover: #00283e;
+
+  --text-primary:   rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-muted:     rgba(255,255,255,0.30);
+
+  /* 警告カラー（ダーク） */
+  --urgent-text:    #ff6b78;
+  --urgent-bg:      rgba(255,70,85,0.12);
+  --urgent-border:  rgba(255,70,85,0.32);
+  --warn-text:      #ffc94d;
+  --warn-bg:        rgba(255,190,50,0.12);
+  --warn-border:    rgba(255,190,50,0.30);
+
+  /* カードテキスト: ダークテーマではほぼ白 */
+  --card-title-color:       rgba(255,255,255,0.95);
+  --card-course-color:      rgba(255,255,255,0.45);
+  --card-type-color:        rgba(255,255,255,0.35);
+  --time-unit-color:        rgba(255,255,255,0.40);
+  --progress-track-color:   rgba(255,255,255,0.08);
+
+  /* 期限切れカード（ダーク） */
+  --expired-card-bg:     rgba(120,120,130,0.12);
+  --expired-card-border: rgba(150,150,160,0.25);
+  --expired-text:        rgba(255,255,255,0.50);
+  --expired-num-color:   rgba(255,255,255,0.60);
+  --expired-badge-bg:    rgba(100,100,110,0.25);
+  --expired-badge-color: rgba(255,255,255,0.55);
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ── 1. 起動ボタン ── */
+#lms-timetable-btn {
+  position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+  background-color: var(--accent-blue); color: #fff; font-weight: bold;
+  border-radius: 50%; border: none; font-size: 14px; cursor: pointer; z-index: 999999;
+  box-shadow: 0 4px 12px rgba(0, 62, 95, 0.4); transition: background 0.3s, transform 0.3s;
+  overflow: visible;
+}
+#lms-timetable-btn:hover { background-color: var(--accent-blue-hover); transform: scale(1.05); }
+
+/* ── 通知ドット ── */
+#lms-notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--accent-blue);
+  display: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+#lms-notif-dot.dot-urgent {
+  display: block;
+  background: #ff4655;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(255,70,85,0.35);
+  animation: dotPulse 1.8s ease-in-out infinite;
+}
+#lms-notif-dot.dot-warning {
+  display: block;
+  background: #ffbe32;
+  border-color: var(--accent-blue);
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255,70,85,0.35); }
+  50%       { box-shadow: 0 0 0 5px rgba(255,70,85,0); }
+}
+
+/* ── 2. パネル本体 ── */
+.lms-panel {
+  display: none; position: fixed; bottom: 100px; right: 30px; width: 320px;
+  background: var(--bg-panel); border-radius: var(--radius-lg); z-index: 999999;
+  font-family: 'Noto Sans JP', sans-serif; color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--border-subtle), 0 24px 56px rgba(0,0,0,0.65);
+  max-height: 560px;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lms-panel.show { display: flex; animation: panelIn 0.3s cubic-bezier(.22,1,.36,1) both; }
+@keyframes panelIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── ヘッダー（固定・再描画しない） ── */
+.panel-header {
+  display: flex; align-items: center; padding: 13px 15px 12px;
+  border-bottom: 1px solid var(--border-subtle); gap: 10px; flex-shrink: 0;
+}
+.panel-logo {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  color: #fff; background: var(--accent-blue); padding: 3px 8px; border-radius: 4px;
+}
+.header-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.nav-btn {
+  width: 26px; height: 26px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);
+  background: transparent; color: var(--text-secondary); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-mid); }
+.nav-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+/* ── 3. スクロールエリア ── */
+.lms-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 12px;
+}
+.lms-scroll-area::-webkit-scrollbar { width: 6px; }
+.lms-scroll-area::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+.lms-scroll-area::-webkit-scrollbar-track { background: transparent; }
+
+/* ── バナー ── */
+#lms-top-banner { margin: 10px 10px 0; border-radius: var(--radius-md); overflow: hidden; }
+.banner-inner { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid; }
+.banner-inner.urgent { background: var(--urgent-bg); border-color: var(--urgent-border); }
+.banner-inner.warning { background: var(--warn-bg); border-color: var(--warn-border); }
+.banner-icon { font-size: 14px; }
+.banner-text { flex: 1; min-width: 0; }
+.banner-label { font-size: 9.5px; font-weight: 700; color: var(--urgent-text); }
+.warning .banner-label { color: var(--warn-text); }
+.banner-desc { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.banner-btn {
+  font-size: 10px; font-weight: 600; padding: 4px 10px;
+  border-radius: var(--radius-sm); border: 1px solid; cursor: pointer;
+  background: transparent;
+}
+.urgent .banner-btn { color: var(--urgent-text); border-color: var(--urgent-border); }
+.warning .banner-btn { color: var(--warn-text); border-color: var(--warn-border); }
+
+/* ── 時間割 ── */
+.day-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 10px; }
+.day-name { font-size: 17px; font-weight: 700; color: var(--text-primary); }
+#day-select {
+  background: var(--bg-surface); border: 1px solid var(--border-mid);
+  border-radius: var(--radius-md); color: var(--text-primary);
+  font-size: 12px; padding: 6px 12px; cursor: pointer; outline: none;
+}
+
+.timetable-list { padding: 4px 10px 0; display: flex; flex-direction: column; gap: 3px; }
+.timetable-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  border-radius: var(--radius-md); border: 1px solid transparent;
+  transition: background 0.16s, border-color 0.16s;
+}
+.timetable-item:hover { background: var(--bg-hover); border-color: var(--border-mid); }
+.period-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 600;
+  color: var(--text-muted); background: var(--bg-surface);
+  border: 1px solid var(--border-subtle); border-radius: 4px;
+  width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.course-link {
+  flex: 1; font-size: 13px; font-weight: 500; color: var(--text-primary);
+  text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.course-name { flex: 1; font-size: 12px; color: var(--text-muted); }
+.timetable-item.empty { opacity: 0.5; cursor: default; }
+.list-sep { display: flex; align-items: center; gap: 8px; padding: 4px 12px; }
+.list-sep-line { flex: 1; height: 1px; background: var(--border-subtle); }
+.list-sep-label { font-size: 9.5px; color: var(--text-muted); }
+
+.task-badge { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 20px; white-space: nowrap; }
+.task-badge.urgent { background: var(--urgent-bg); color: var(--urgent-text); border: 1px solid var(--urgent-border); }
+.task-badge.normal { background: rgba(0,62,95,0.25); color: #7ab2f0; border: 1px solid rgba(122,178,240,0.30); }
+
+#bulk-reg-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: calc(100% - 20px); margin: 0 10px 10px; padding: 9px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-blue);
+  background: var(--accent-blue); color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.15s;
+  letter-spacing: 0.02em;
+}
+#bulk-reg-btn:hover:not(:disabled) {
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+  transform: translateY(-1px);
+}
+#bulk-reg-btn:disabled {
+  opacity: 0.35; cursor: not-allowed; transform: none;
+}
+
+#bulk-scan-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: calc(100% - 20px); margin: 10px 10px 8px; padding: 9px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-blue);
+  background: var(--accent-blue); color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.15s;
+  letter-spacing: 0.02em;
+}
+#bulk-scan-btn:hover:not(:disabled) {
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+  transform: translateY(-1px);
+}
+#bulk-scan-btn:disabled {
+  opacity: 0.35; cursor: not-allowed; transform: none;
+}
+
+.scan-hint {
+  font-size: 11px; color: var(--text-muted);
+  text-align: center; padding: 4px 12px 8px;
+  line-height: 1.5;
+}
+
+/* ── アラートエリア ── */
+.alert-view { padding: 12px; }
+.alert-section-inner { display: flex; flex-direction: column; }
+
+.alert-section-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  margin-bottom: 10px; margin-top: 6px; padding-left: 4px;
+  letter-spacing: 0.02em;
+}
+.expired-label { color: var(--expired-text); }
+
+/* ── アラートカード（共通） ── */
+.alert-card {
+  position: relative; border-radius: var(--radius-md); padding: 11px 13px;
+  margin-bottom: 8px; display: block; text-decoration: none; transition: transform 0.18s;
+  border: 1px solid;
+}
+.alert-card:hover { transform: translateY(-1px); }
+
+/* ── 緊急カード ── */
+.alert-card.urgent {
+  background: var(--urgent-card-bg, rgba(180,30,40,0.15));
+  border-color: var(--urgent-border);
+}
+/* ── 注意カード ── */
+.alert-card.warning {
+  background: var(--warn-card-bg, rgba(160,110,0,0.12));
+  border-color: var(--warn-border);
+}
+/* ── 期限切れカード ── */
+.alert-card.expired {
+  background: var(--expired-card-bg);
+  border-color: var(--expired-card-border);
+}
+
+/* カード内テキスト: 全てCSS変数で両テーマ対応 */
+.card-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+
+.badge { font-size: 9.5px; font-weight: 600; padding: 2px 5px; border-radius: 4px; }
+.urgent  .badge { background: var(--urgent-bg); color: var(--urgent-text); }
+.warning .badge { background: var(--warn-bg);   color: var(--warn-text); }
+
+.expired-badge {
+  font-size: 9.5px; font-weight: 600; padding: 2px 5px; border-radius: 4px;
+  background: var(--expired-badge-bg); color: var(--expired-badge-color);
+}
+.type-label  { font-size: 9.5px; color: var(--card-type-color); }
+.card-course { font-size: 10px; color: var(--card-course-color); margin-bottom: 2px; }
+
+/* 最重要: card-titleは固定の#fffではなくCSS変数を使う */
+.card-title {
+  font-size: 13.5px; font-weight: 700;
+  color: var(--card-title-color);
+}
+.expired .card-title { color: var(--expired-text); }
+
+.card-bottom { display: flex; justify-content: space-between; align-items: baseline; margin-top: 7px; }
+.card-deadline { font-size: 10px; color: var(--time-unit-color); }
+
+/* ── チェックボックスラッパー ── */
+.lms-panel .alert-card-wrap {
+  position: relative; display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px;
+}
+.lms-panel .alert-card-wrap .alert-card { flex: 1; margin-bottom: 0; }
+
+/* ── チェックボタン（未完了） ── */
+.lms-panel .check-btn {
+  flex-shrink: 0; margin-top: 11px;
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--border-strong) !important;
+  background: transparent !important; cursor: pointer;
+  display: flex !important; align-items: center; justify-content: center;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  color: transparent; font-size: 11px; font-weight: 700;
+  padding: 0; outline: none; box-sizing: border-box;
+  min-width: 20px; min-height: 20px;
+}
+.lms-panel .check-btn:hover {
+  border-color: var(--accent-blue) !important;
+  background: rgba(0,62,95,0.15) !important;
+  transform: scale(1.1);
+}
+
+/* ── チェックボタン（完了済み） ── */
+.lms-panel .check-btn.checked {
+  background: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
+  color: #fff !important;
+}
+.lms-panel .check-btn.checked:hover {
+  background: var(--accent-blue-hover) !important;
+  border-color: var(--accent-blue-hover) !important;
+}
+
+/* ── 完了済みカード ── */
+.lms-panel .done-card {
+  display: flex !important; align-items: center; gap: 8px;
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 9px 12px; margin-bottom: 6px;
+  opacity: 0.6; transition: opacity 0.15s;
+}
+.lms-panel .done-card:hover { opacity: 0.85; }
+.lms-panel .done-card .check-btn { margin-top: 0; }
+.lms-panel .done-inner { flex: 1; min-width: 0; }
+.lms-panel .done-title {
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lms-panel .done-label { color: var(--accent-blue); }
+
+/* ── 完了アニメーション ── */
+@keyframes lmsCompleting {
+  0%   { opacity: 1; transform: translateX(0) scale(1); }
+  30%  { opacity: 1; transform: translateX(6px) scale(1.01); }
+  100% { opacity: 0; transform: translateX(24px) scale(0.97); }
+}
+.lms-panel .alert-card-wrap.completing {
+  animation: lmsCompleting 0.55s cubic-bezier(.4,0,.2,1) forwards !important;
+  pointer-events: none !important;
+}
+.lms-panel .alert-card-wrap.completing .check-btn {
+  background: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
+  color: #fff !important;
+}
+.time-display { display: flex; align-items: baseline; gap: 3px; }
+
+.time-num { font-size: 22px; font-weight: 600; }
+.urgent  .time-num { color: var(--urgent-text); }
+.warning .time-num { color: var(--warn-text); }
+.expired-num { color: var(--expired-num-color); }
+
+.time-unit { font-size: 10px; color: var(--time-unit-color); }
+
+.progress-wrap { width: 100%; height: 2px; background: var(--progress-track-color); margin-top: 9px; border-radius: 2px; }
+.progress-bar  { height: 100%; border-radius: 2px; }
+.urgent  .progress-bar { background: linear-gradient(to right, var(--urgent-text), #ff1f3a); }
+.warning .progress-bar { background: linear-gradient(to right, var(--warn-text), #ffa500); }
+
+.no-alert { text-align: center; color: var(--text-muted); padding: 24px 0; font-size: 12px; }
+
+
+/* =====================================================================
+   ライトテーマ: .lms-panel.light-theme 以下でCSS変数を上書き
+   原則: 固定色を使わず、ダークテーマと同じ変数名で別の値を設定する
+   ===================================================================== */
+.lms-panel.light-theme {
+  --bg-panel:      #ffffff;
+  --bg-surface:    #f8f9fa;
+  --bg-hover:      #edf0f3;
+  --border-subtle: rgba(0,0,0,0.06);
+  --border-mid:    rgba(0,0,0,0.11);
+  --border-strong: rgba(0,0,0,0.18);
+
+  --text-primary:   #1a1d23;
+  --text-secondary: #4a5568;
+  --text-muted:     #8a95a3;
+
+  /* 警告カラー（ライト）: 濃く、視認性高く */
+  --urgent-text:   #c0202e;
+  --urgent-bg:     rgba(192,32,46,0.08);
+  --urgent-border: rgba(192,32,46,0.22);
+  --warn-text:     #995c00;
+  --warn-bg:       rgba(153,92,0,0.08);
+  --warn-border:   rgba(153,92,0,0.22);
+
+  /* カードテキスト: ライトテーマでは濃い色 */
+  --card-title-color:     #1a1d23;
+  --card-course-color:    #5a6575;
+  --card-type-color:      #8a95a3;
+  --time-unit-color:      #7a8898;
+  --progress-track-color: rgba(0,0,0,0.08);
+
+  /* 緊急/注意カード背景（ライト）: 薄い色で白背景と差をつける */
+  --urgent-card-bg: rgba(192,32,46,0.05);
+  --warn-card-bg:   rgba(153,92,0,0.05);
+
+  /* 期限切れカード（ライト） */
+  --expired-card-bg:     rgba(100,100,110,0.06);
+  --expired-card-border: rgba(100,100,110,0.18);
+  --expired-text:        #7a8898;
+  --expired-num-color:   #8a95a3;
+  --expired-badge-bg:    rgba(100,100,110,0.10);
+  --expired-badge-color: #7a8898;
+
+  box-shadow: 0 0 0 1px var(--border-mid), 0 12px 32px rgba(0,0,0,0.12);
+}
+
+/* ライトテーマ専用の細かい調整 */
+
+/* course-link はダークで text-primary になるが、ライトでは青みがかった色の方が
+   「クリックできる」と直感的に伝わる */
+.lms-panel.light-theme .course-link {
+  color: #1a4a7a;
+}
+
+/* task-badge.normal: ライトテーマでは紺色ベースに */
+.lms-panel.light-theme .task-badge.normal {
+  background: rgba(0,62,95,0.07);
+  border-color: rgba(0,62,95,0.18);
+  color: #00527e;
+}
+
+/* アラートカードの左ボーダーアクセント（ライトテーマでカード種別を強調） */
+.lms-panel.light-theme .alert-card.urgent  { border-left: 3px solid var(--urgent-border); }
+.lms-panel.light-theme .alert-card.warning { border-left: 3px solid var(--warn-border); }
+.lms-panel.light-theme .alert-card.expired { border-left: 3px solid var(--expired-card-border); }
+
+/* day-select: ライトテーマで文字色を確保 */
+.lms-panel.light-theme #day-select {
+  color: var(--text-primary);
+}
